@@ -1,0 +1,14 @@
+<div class="project-card <%= 'urgent' if project.urgent? %>">
+  <h4><%= link_to project.name, project %></h4>
+  <p>Description: <%= project.description %></p>
+  <p>Deadline: <%= project.end_date %></p>
+  <p>Created by: <%= project.user.name %></p>
+  
+<% if project.in_progress? %>
+  <p>Executor: <%= project.project_users.member.first&.user&.name || 'Not assigned' %></p>
+<% end %>
+  
+  <% if logged_in? && project.respond_to?(:can_be_taken_by?) && project.can_be_taken_by?(current_user) %>
+    <%= button_to "Take Project", take_project_project_path(project), method: :post, class: "btn btn-primary" %>
+  <% end %>
+</div>

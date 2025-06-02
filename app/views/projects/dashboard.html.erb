@@ -1,0 +1,73 @@
+<h1>Project Dashboard</h1>
+
+<div class="project-columns">
+  <div class="project-column">
+    <h3>🚀 In Search </h3>
+    <% if @projects_searching.any?  %>
+      <% @projects_searching.each do |project| %>
+        <%= render 'project', project: project %>
+      <% end %>
+    <% else %>
+      <p>No projects currently looking for team members.</p>
+    <% end %>
+  </div>
+
+  <div class="project-column">
+    <h3>🔥 Urgent</h3>
+    <% if @projects_urgent.any? %>
+      <% @projects_urgent.each do |project| %>
+        <%= render 'project', project: project %>
+      <% end %>
+    <% else %>
+      <p>No urgent projects.</p>
+    <% end %>
+  </div>
+
+  <% if logged_in? %>
+    <div class="project-column">
+      <h3>🚧 In Progress</h3>
+      <% if @my_projects_in_progress.present?  %>
+        <% @my_projects_in_progress.each do |project| %>
+          <div class="project-card">
+            <h4><%= link_to project.name, project_path(project) %></h4>
+            <p><strong>Creator:</strong> <%= project.user.name %></p>
+            <% if project.in_progress?  %>
+              <p><strong>Executor:</strong> <%= project.project_users.member.first&.user&.name || 'Not assigned' %></p> 
+            <% else %>
+              <p><strong>Members:</strong> <%= project.users.map(&:name).join(', ') %></p>
+            <% end %>
+            <p><strong>Status:</strong> <%= project.status.humanize %></p>
+          </div>
+        <% end %>
+      <% else %>
+        <p>You have no projects currently in progress.</p>
+      <% end %>
+    </div>
+
+    <div class="project-column"> 
+      <h3>✅ Completed</h3>
+      <% if @my_projects_completed.any? %>
+        <% @my_projects_completed.each do |project| %>
+          <div class="project-card completed">
+            <h4><%= link_to project.name, project_path(project) %></h4>
+            <p><strong>Creator:</strong> <%= project.user.name %></p>
+            <p><strong>Executor:</strong> <%= project.project_users.find_by(role: :member)&.user&.name || 'N/A' %></p>
+            <p><strong>Start Date:</strong> <%= project.start_date %></p>
+            <p><strong>Completion Date:</strong> <%= project.end_date %></p>
+            <% if project.result_link.present? %>
+              <p><strong>Result:</strong> <%= link_to project.result_link, project.result_link, target: "_blank" %></p>
+            <% end %>
+          </div>
+        <% end %>
+      <% else %>
+        <p>You have no completed projects.</p>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<% unless logged_in?  %>
+  <p style="margin-top: 20px;">
+    <%= link_to "Log in", login_path %> or <%= link_to "Sign up", new_user_path %> to create projects and join teams. 
+  </p>
+<% end %>

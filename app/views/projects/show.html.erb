@@ -1,0 +1,118 @@
+<h1><%= @project.name %></h1>
+
+<p><strong>Status:</strong> <%= @project.status.humanize %></p>
+<p><strong>Description:</strong> <%= @project.description %></p>
+<p><strong>Creator:</strong> <%= @project.user.name %></p>
+<p><strong>Start Date:</strong> <%= @project.start_date %></p>
+<p><strong>End Date:</strong> <%= @project.end_date %></p>
+<% if @project.in_progress? %>
+  <p><strong>Executor:</strong> <%= @project.project_users.member.first&.user&.name || 'Not assigned' %></p>
+<% else %>
+  <p>
+    <strong>Executor:</strong>
+    <% if @project.project_users.any? %>
+      <%= @project.project_users.member.first&.user&.name%>
+    <% else %>
+      None yet.
+    <% end %>
+  </p>
+<% end %>
+
+<% if @project.status == 'completed' && @project.result_link.present? %>
+  <p><strong>Result Link:</strong> <%= link_to @project.result_link, @project.result_link, target: "_blank" %></p>
+<% end %>
+
+<% if logged_in? %>
+  <% if @project.user == current_user || @project.project_users.exists?(user: current_user, role: :admin) %>
+    <%= link_to "Edit Project", edit_project_path(@project), class: "btn btn-secondary btn-sm" %>
+    <%= button_to "Delete Project", project_path(@project), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-danger btn-sm" %>
+  <% end %>
+
+  <% if logged_in? && @project.can_be_taken_by?(current_user) %>
+    <%= button_to "Take Project", take_project_project_path(@project), method: :post, class: "btn btn-primary" %>
+  <% end %>
+<% end %>
+
+<hr>
+<h2>Tasks</h2>
+<div id="tasks">
+  <% @tasks.each do |task| %>
+    <div class="task-item <%= 'checked' if task.is_checked? %>">
+      <div>
+        <strong class="task-title"><%= task.title %></strong>
+        <% if task.user %>
+          <small>(Assigned to: <%= task.user.name %></small>
+        <% end %>
+        <p><%= task.description %></p>
+        <% if task.due_date %>
+          <small>Due: <%= task.due_date.strftime('%d %b %Y') %></small>
+        <% end %>
+      </div>
+      <div>
+        <% if @project.status == 'in_progress' && task.user == current_user %>
+            <% if task.is_checked? %>
+              <%= button_tag "Completed", class: "btn btn-sm btn-success", disabled: true %>
+            <% else %>
+              <%= button_to "Complete", 
+                    toggle_check_project_task_path(@project, task), 
+                    method: :patch, 
+                    class: "btn btn-sm btn-primary" %>
+            <% end %>
+          <% else %>
+            <span class="task-status">
+              <% if task.is_checked? %>
+                <%= button_tag "Completed", class: "btn btn-sm btn-success", disabled: true %>
+              <% else %>
+                <%= button_to "Mark as Completed", 
+                      toggle_check_task_path(task), 
+                      method: :patch,
+                      class: "btn btn-sm btn-primary" %>
+              <% end %>
+            </span>
+          <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<% if logged_in? && (@project.user == current_user || @project.project_users.exists?(user: current_user, role: :admin)) && @project.status == 'in_progress' %>
+  <hr>
+  <h3>Add New Task</h3>
+  <%= form_with(model: [@project, @task], local: true) do |form| %>
+    <div class="form-group">
+      <%= form.label :title %>
+      <%= form.text_field :title, required: true %>
+    </div>
+    <div class="form-group">
+      <%= form.label :description %>
+      <%= form.text_area :description, rows: 3 %>
+    </div>
+    <div class="form-group">
+      <%= form.label :due_date %>
+      <%= form.date_field :due_date %>
+    </div>
+    <div class="form-group">
+      <%= form.label :user_id, "Assign to (Member)" %>
+      <%= form.collection_select :user_id, @project.users, :id, :name, { include_blank: 'Unassigned' }, class: "form-control" %>
+    </div>
+    <%= form.submit "Create Task", class: "btn btn-primary" %>
+  <% end %>
+<% end %>
+
+<% if @project.in_progress? && @project.all_tasks_completed? && 
+      (@project.user == current_user || @project.project_users.exists?(user: current_user, role: :member)) %>
+  <hr>
+  <h3>Complete Project</h3>
+  <%= form_with(model: @project, url: update_status_project_path(@project, status: :completed), method: :patch, local: true) do |form| %>
+    <div class="form-group">
+      <%= form.label :result_link, "Link to Result (e.g., GitHub repository)" %>
+      <%= form.text_field :result_link, required: true, class: "form-control" %>
+    </div>
+    <%= form.submit "Submit Project", 
+          class: "btn btn-success",
+          data: { confirm: "Are you sure you want to mark this project as completed?" } %>
+  <% end %>
+<% end %>
+
+<hr>
+<p><%= link_to "Back to Dashboard", root_path %></p>

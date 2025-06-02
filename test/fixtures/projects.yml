@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  description: MyText
+  start_date: 2025-05-22
+  end_date: 2025-05-22
+  status: 1
+  result_link: MyString
+  creator: one
+
+two:
+  name: MyString
+  description: MyText
+  start_date: 2025-05-22
+  end_date: 2025-05-22
+  status: 1
+  result_link: MyString
+  creator: two

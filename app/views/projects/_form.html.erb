@@ -1,0 +1,108 @@
+<%= form_with(model: project, local: true) do |form| %>
+  <% if project.errors.any? %>
+    <div class="alert alert-danger">
+      <h2><%= pluralize(project.errors.count, "error") %> prohibited this project from being saved:</h2>
+      <ul>
+        <% project.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :name %>
+    <%= form.text_field :name, required: true %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :description %>
+    <%= form.text_area :description, rows: 5 %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :start_date %>
+    <%= form.date_field :start_date, required: true %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :end_date %>
+    <%= form.date_field :end_date, required: true %>
+  </div>
+
+  <h3>Tasks</h3>
+  <div id="tasks">
+    <%= form.fields_for :tasks do |task_form| %>
+      <div class="nested-fields" data-new-record="<%= task_form.object.new_record? %>">
+        <div class="form-group">
+          <%= task_form.label :title %>
+          <%= task_form.text_field :title, required: true %>
+        </div>
+
+        <div class="form-group">
+          <%= task_form.label :description %>
+          <%= task_form.text_area :description %>
+        </div>
+
+        <%= task_form.hidden_field :_destroy %>
+        <button type="button" class="remove-task btn btn-danger">Remove Task</button>
+      </div>
+    <% end %>
+  </div>
+
+  <button type="button" id="add-task" class="btn btn-secondary">Add Task</button>
+
+  <div class="form-group">
+    <%= form.submit "Create Project", class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tasksContainer = document.getElementById('tasks');
+  const addTaskButton = document.getElementById('add-task');
+  let taskIndex = <%= project.tasks.size %>;
+
+  addTaskButton.addEventListener('click', function() {
+    const time = new Date().getTime();
+    const template = `
+      <div class="nested-fields" data-new-record="true">
+        <div class="form-group">
+          <label for="project_tasks_attributes_${time}_title">Title</label>
+          <input required="required" type="text" name="project[tasks_attributes][${time}][title]" id="project_tasks_attributes_${time}_title">
+        </div>
+        <div class="form-group">
+          <label for="project_tasks_attributes_${time}_description">Description</label>
+          <textarea name="project[tasks_attributes][${time}][description]" id="project_tasks_attributes_${time}_description"></textarea>
+        </div>
+        <input type="hidden" name="project[tasks_attributes][${time}][_destroy]" value="0">
+        <button type="button" class="remove-task btn btn-danger">Remove Task</button>
+      </div>
+    `;
+    tasksContainer.insertAdjacentHTML('beforeend', template);
+    taskIndex++;
+  });
+
+  tasksContainer.addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-task')) {
+      e.preventDefault();
+      const taskField = e.target.closest('.nested-fields');
+      const destroyField = taskField.querySelector('input[type="hidden"]');
+      const isNewRecord = taskField.dataset.newRecord === 'true';
+
+      const remainingTasks = document.querySelectorAll('.nested-fields:not([style*="display: none"])');
+      if (remainingTasks.length <= 1) {
+        alert('Project must have at least one task');
+        return;
+      }
+
+      if (isNewRecord) {
+        taskField.remove();
+      } else {
+        destroyField.value = '1';
+        taskField.style.display = 'none';
+      }
+    }
+  });
+});
+</script>

@@ -1,0 +1,14 @@
+<%# app/views/projects/index.html.erb %>
+<h1>My Projects</h1>
+
+<% if @projects.any? %>
+  <div class="project-list">
+    <% @projects.each do |project| %>
+      <%= render 'project', project: project %>
+    <% end %>
+  </div>
+<% else %>
+  <p>You don't have any projects yet.</p>
+<% end %>
+
+<p><%= link_to "Create New Project", new_project_path, class: "btn btn-primary" %></p>
