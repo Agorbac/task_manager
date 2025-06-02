@@ -1,24 +1,150 @@
-# README
+# Task Manager - Менеджер проектов и задач
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
 
-Things you may want to cover:
 
-* Ruby version
+## Описание проекта
 
-* System dependencies
+Task Manager - это веб-приложение для управления проектами и задачами, разработанное на Ruby on Rails. Оно позволяет пользователям:
 
-* Configuration
+- Создавать проекты с задачами
+- Присоединяться к проектам других пользователей
+- Отслеживать статус выполнения задач
+- Управлять сроками выполнения проектов
+- Распределять роли между участниками проекта
 
-* Database creation
+## Основные функции
 
-* Database initialization
+### Для всех пользователей
+- Просмотр проектов, ищущих участников
+- Просмотр срочных проектов
+- Регистрация и аутентификация
 
-* How to run the test suite
+### Для зарегистрированных пользователей
+- Создание собственных проектов
+- Присоединение к другим проектам в качестве участника
+- Управление задачами в проектах
+- Отметка выполнения задач
+- Завершение проектов с указанием результата
 
-* Services (job queues, cache servers, search engines, etc.)
+### Для создателей проектов и администраторов
+- Редактирование проектов
+- Удаление проектов
+- Назначение администраторов
+- Управление участниками проекта
 
-* Deployment instructions
+## Технологический стек
 
-* ...
+- **Backend**: Ruby on Rails 7.1
+- **Frontend**: HTML, CSS, ERB
+- **База данных**: SQLite (в разработке), PostgreSQL (в продакшене)
+- **Аутентификация**: Session-based
+- **Деплой**: Подготовлен для развертывания (конфигурация Puma, настройки production)
+
+## Установка и запуск
+
+1. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/ваш-username/task_manager.git
+   cd task_manager
+   ```
+
+2. Установите зависимости:
+   ```bash
+   bundle install
+   ```
+
+3. Создайте и настройте базу данных:
+   ```bash
+   rails db:create
+   rails db:migrate
+   ```
+
+4. Запустите сервер:
+   ```bash
+   rails server
+   ```
+
+5. Откройте приложение в браузере:
+   ```
+   http://localhost:3000
+   ```
+
+## Модели данных
+
+### User (Пользователь)
+- Имя
+- Email (уникальный)
+- Зашифрованный пароль
+- Связи:
+  - Созданные проекты
+  - Проекты, в которых участвует
+  - Назначенные задачи
+
+### Project (Проект)
+- Название
+- Описание
+- Даты начала и окончания
+- Статус (поиск участников, срочный, в работе, завершен)
+- Ссылка на результат
+- Связи:
+  - Создатель
+  - Участники
+  - Задачи
+
+### Task (Задача)
+- Название
+- Описание
+- Срок выполнения
+- Статус выполнения
+- Связи:
+  - Проект
+  - Исполнитель (опционально)
+
+### ProjectUser (Участник проекта)
+- Связь между пользователем и проектом
+- Роль (администратор, участник)
+
+## Маршруты (Routes)
+
+Основные маршруты приложения:
+
+```
+root 'projects#dashboard'
+
+resources :projects do
+  member do
+    post 'take_project'
+    patch 'submit_result'
+    post 'join'
+    patch 'update_status'
+    patch 'update_tasks'
+  end
+  resources :tasks, only: [:update, :create, :destroy], shallow: true do
+    member do
+      patch :toggle_check
+    end
+  end
+end
+
+# Аутентификация
+get '/login', to: 'sessions#new', as: 'login'
+post '/login', to: 'sessions#create'
+delete '/logout', to: 'sessions#destroy', as: 'logout'
+  
+get '/signup', to: 'users#new', as: 'new_user'
+post '/signup', to: 'users#create'
+
+# Action Cable
+mount ActionCable.server => '/cable'
+```
+
+## Лицензия
+
+Этот проект распространяется под лицензией MIT. Подробности см. в файле LICENSE.
+
+## Контакты
+
+По вопросам и предложениям обращайтесь:
+
+- Email: 
+- GitHub: 
