@@ -36,7 +36,7 @@ Task Manager - это веб-приложение для управления п
 
 - **Backend**: Ruby on Rails 7.1
 - **Frontend**: HTML, CSS, ERB
-- **База данных**: SQLite (в разработке), PostgreSQL (в продакшене)
+- **База данных**: SQLite
 - **Аутентификация**: Session-based
 - **Деплой**: Подготовлен для развертывания (конфигурация Puma, настройки production)
 
